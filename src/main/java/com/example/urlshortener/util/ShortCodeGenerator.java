@@ -1,18 +1,24 @@
 package com.example.urlshortener.util;
 
-import java.security.SecureRandom;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.Base64;
 
-public final class ShortCodeGenerator {
-    private static final String ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    private static final SecureRandom RANDOM = new SecureRandom();
+import org.springframework.stereotype.Component;
 
-    private ShortCodeGenerator() {}
+@Component
+public class ShortCodeGenerator {
 
-    public static String generate(int length) {
-        StringBuilder sb = new StringBuilder(length);
-        for (int i = 0; i < length; i++) {
-            sb.append(ALPHABET.charAt(RANDOM.nextInt(ALPHABET.length())));
+    // simple deterministic generator using sha-1 + base64 (then take first 7 chars)
+    public String generate(String input) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+            byte[] h = md.digest(input.getBytes(StandardCharsets.UTF_8));
+            String b64 = Base64.getUrlEncoder().withoutPadding().encodeToString(h);
+            return b64.substring(0, Math.min(7, b64.length()));
+        } catch (Exception e) {
+            // fallback
+            return Long.toString(System.currentTimeMillis(), 36);
         }
-        return sb.toString();
     }
 }
