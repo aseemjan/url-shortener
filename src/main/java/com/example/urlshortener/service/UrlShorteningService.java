@@ -46,9 +46,15 @@ public class UrlShorteningService {
         return new ShortenResponse(saved.getShortKey(), shortUrl);
     }
 
-    /**
-     * Lookup by shortKey.
-     */
+    public Optional<String> expandUrl(String shortCode) {
+        if (shortCode == null) return Optional.empty();
+        String code = shortCode.trim();
+        if (code.isEmpty()) return Optional.empty();
+
+        return repo.findByShortKey(code).map(UrlMapping::getLongUrl);
+    }
+
+
     public Optional<UrlMapping> findByKey(String shortKey) {
         return repo.findByShortKey(shortKey);
     }
