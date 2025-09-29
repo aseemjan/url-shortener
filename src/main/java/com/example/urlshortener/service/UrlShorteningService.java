@@ -31,19 +31,45 @@ public class UrlShorteningService {
      * Returns a DTO containing the shortKey and the full short URL.
      */
     public ShortenResponse shortenUrl(String longUrl) {
-        // generate deterministic or random short key
+        // 0) Normalize base URL (Option-B: tolerate null/blank)
+        final String bz = (baseUrl == null || baseUrl.isBlank()) ? "" : baseUrl.trim();
+        final boolean hasBase = !bz.isBlank();
+
+        // 1) Reuse existing mapping if present
+        Optional<UrlMapping> existing = repo.findByLongUrl(longUrl);
+        if (existing.isPresent()) {
+            UrlMapping m = existing.get();
+            String shortUrl = hasBase
+                    ? (bz.endsWith("/") ? bz + m.getShortKey() : bz + "/" + m.getShortKey())
+                    : m.getShortKey(); // no base => just key
+            // Build DTO with longUrl + shortKey (+ shortUrl)
+            ShortenResponse dto = new ShortenResponse();
+            dto.setLongUrl(m.getLongUrl());
+            dto.setShortKey(m.getShortKey());
+            dto.setShortUrl(shortUrl);
+            return dto;
+        }
+
+        // 2) Generate new code and save
         String key = generator.generate(longUrl);
 
-        // create and save entity
         UrlMapping mapping = new UrlMapping();
         mapping.setShortKey(key);
         mapping.setLongUrl(longUrl);
-        mapping.setCreatedAt(Instant.now().toEpochMilli()); // matches model Long
+        mapping.setCreatedAt(Instant.now().toEpochMilli()); // model uses Long
 
         UrlMapping saved = repo.save(mapping);
 
-        String shortUrl = baseUrl.endsWith("/") ? baseUrl + key : baseUrl + "/" + key;
-        return new ShortenResponse(saved.getShortKey(), shortUrl);
+        String shortUrl = hasBase
+                ? (bz.endsWith("/") ? bz + key : bz + "/" + key)
+                : key;
+
+        // Build DTO with longUrl + shortKey (+ shortUrl)
+        ShortenResponse dto = new ShortenResponse();
+        dto.setLongUrl(saved.getLongUrl());
+        dto.setShortKey(saved.getShortKey());
+        dto.setShortUrl(shortUrl);
+        return dto;
     }
 
     public Optional<String> expandUrl(String shortCode) {
