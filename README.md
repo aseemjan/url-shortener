@@ -6,7 +6,7 @@
 
 ---
 
-![Banner](![](/Users/admin/Desktop/JOB/urlshortener/src/main/assets/banner.png)./src/main/assets/banner.png)
+![Banner](.src/main/assets/banner.png)
 
 
 *A simple URL Shortener service built with Spring Boot.*
