@@ -6,7 +6,8 @@
 
 ---
 
-![Banner](.src/main/assets/banner.png)
+![Banner](https://raw.githubusercontent.com/<aseemjan>/<url-shortener>/main/src/main/assets/banner.png)
+
 
 
 *A simple URL Shortener service built with Spring Boot.*
