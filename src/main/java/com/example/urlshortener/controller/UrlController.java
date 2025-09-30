@@ -28,7 +28,7 @@ public class UrlController {
 
     @GetMapping("/{shortKey}")
     public ResponseEntity<Void> redirectToLongUrl(@PathVariable String shortKey) {
-        return service.findByKey(shortKey)
+        return service.findByShortKey(shortKey)
                 .map(mapping -> ResponseEntity.status(HttpStatus.FOUND)
                         .header(HttpHeaders.LOCATION, mapping.getLongUrl())
                         .<Void>build())                       // <- force Void here

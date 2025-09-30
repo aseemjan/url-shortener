@@ -81,7 +81,7 @@ public class UrlShorteningService {
     }
 
 
-    public Optional<UrlMapping> findByKey(String shortKey) {
+    public Optional<UrlMapping> findByShortKey(String shortKey) {
         return repo.findByShortKey(shortKey);
     }
 }
