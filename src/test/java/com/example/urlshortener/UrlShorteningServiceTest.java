@@ -115,4 +115,68 @@ class UrlShorteningServiceTest {
         assertFalse(result.isPresent());
         verify(repository).findByShortKey("missing");
     }
+
+    @Test
+    void shortenUrl_whenGeneratedShortKeyCollides_retriesUntilUnique() {
+        String longUrl = "https://example.com/collision";
+        String firstCode = "dup001";
+        String secondCode = "uniq002";
+
+        // URL not already present
+        when(repository.findByLongUrl(longUrl)).thenReturn(Optional.empty());
+
+        // generator first produces a duplicate, then a unique code
+        when(generator.generate(longUrl))
+                .thenReturn(firstCode)
+                .thenReturn(secondCode);
+
+        // repository reports the first code already exists, second one is new
+        when(repository.existsByShortKey(firstCode)).thenReturn(true);
+        when(repository.existsByShortKey(secondCode)).thenReturn(false);
+
+        UrlMapping persisted = new UrlMapping();
+        persisted.setId(10L);
+        persisted.setLongUrl(longUrl);
+        persisted.setShortKey(secondCode);
+
+        when(repository.save(any(UrlMapping.class))).thenReturn(persisted);
+
+        ShortenResponse result = service.shortenUrl(longUrl);
+
+        assertNotNull(result);
+        assertEquals(longUrl, result.getLongUrl());
+        assertEquals(secondCode, result.getShortKey());
+
+        // Verify generator called twice (collision + retry)
+        verify(generator, times(2)).generate(longUrl);
+
+        // Verify repository existence check for both codes
+        verify(repository).existsByShortKey(firstCode);
+        verify(repository).existsByShortKey(secondCode);
+
+        // Verify only one save — for the unique code
+        verify(repository, times(1)).save(any(UrlMapping.class));
+    }
+
+    @Test
+    void shortenUrl_whenAllGeneratedCodesCollide_throwsExceptionAfterMaxRetries() {
+        String longUrl = "https://example.com/exhausted";
+        when(repository.findByLongUrl(longUrl)).thenReturn(Optional.empty());
+
+        // Suppose the service allows up to 3 retries (you can adjust to match your actual implementation)
+        when(generator.generate(longUrl))
+                .thenReturn("dup1")
+                .thenReturn("dup2")
+                .thenReturn("dup3");
+
+        // All generated codes are taken
+        when(repository.existsByShortKey(anyString())).thenReturn(true);
+
+        // No mapping ever saved
+        assertThrows(RuntimeException.class, () -> service.shortenUrl(longUrl));
+
+        verify(generator, atLeast(3)).generate(longUrl);
+        verify(repository, never()).save(any(UrlMapping.class));
+    }
+
 }
