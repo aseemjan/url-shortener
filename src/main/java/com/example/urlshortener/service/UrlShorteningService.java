@@ -5,6 +5,8 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.dao.DataIntegrityViolationException;
+
 
 import com.example.urlshortener.model.UrlMapping;
 import com.example.urlshortener.repository.UrlMappingRepository;
@@ -19,7 +21,11 @@ public class UrlShorteningService {
 
     // optional: base url for constructing the short URL
     @Value("${app.base-url:http://localhost:8080}")
-    private String baseUrl;
+    private String baseUrl = "http://localhost:8080";
+
+    @Value("${shortener.max-retries:3}")
+    private int maxRetries = 3;
+
 
     public UrlShorteningService(UrlMappingRepository repo, ShortCodeGenerator generator) {
         this.repo = repo;
@@ -50,26 +56,45 @@ public class UrlShorteningService {
             return dto;
         }
 
-        // 2) Generate new code and save
-        String key = generator.generate(longUrl);
+        // 2) Try generate + save with collision handling and retries
+        for (int attempt = 1; attempt <= Math.max(1, maxRetries); attempt++) {
+            String key = generator.generate(longUrl);
 
-        UrlMapping mapping = new UrlMapping();
-        mapping.setShortKey(key);
-        mapping.setLongUrl(longUrl);
-        mapping.setCreatedAt(Instant.now().toEpochMilli()); // model uses Long
+            // quick pre-check to avoid unnecessary save if already exists
+            try {
+                if (repo.existsByShortKey(key)) {
+                    // collision detected — try next attempt
+                    continue;
+                }
+            } catch (UnsupportedOperationException ignored) {
+                // in case repo does not provide existsByShortKey, we'll rely on DB constraint below
+            }
 
-        UrlMapping saved = repo.save(mapping);
+            UrlMapping mapping = new UrlMapping();
+            mapping.setShortKey(key);
+            mapping.setLongUrl(longUrl);
+            mapping.setCreatedAt(Instant.now().toEpochMilli()); // model uses Long
 
-        String shortUrl = hasBase
-                ? (bz.endsWith("/") ? bz + key : bz + "/" + key)
-                : key;
+            try {
+                UrlMapping saved = repo.save(mapping);
 
-        // Build DTO with longUrl + shortKey (+ shortUrl)
-        ShortenResponse dto = new ShortenResponse();
-        dto.setLongUrl(saved.getLongUrl());
-        dto.setShortKey(saved.getShortKey());
-        dto.setShortUrl(shortUrl);
-        return dto;
+                String shortUrl = hasBase
+                        ? (bz.endsWith("/") ? bz + key : bz + "/" + key)
+                        : key;
+
+                ShortenResponse dto = new ShortenResponse();
+                dto.setLongUrl(saved.getLongUrl());
+                dto.setShortKey(saved.getShortKey());
+                dto.setShortUrl(shortUrl);
+                return dto;
+            } catch (DataIntegrityViolationException dive) {
+                // likely a unique constraint violation caused by concurrent insert -> retry
+                // fall through to next attempt
+            }
+        }
+
+       // 3) Exhausted retries -> escalate
+        throw new RuntimeException("Failed to generate unique short key after " + maxRetries + " attempts");
     }
 
     public Optional<String> expandUrl(String shortCode) {
