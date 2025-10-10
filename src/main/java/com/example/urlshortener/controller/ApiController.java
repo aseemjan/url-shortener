@@ -20,7 +20,16 @@ public class ApiController {
     @PostMapping("/shorten")
     public ResponseEntity<ShortenResponse> shorten(@Valid @RequestBody ShortenRequest req) {
         ShortenResponse resp = service.shortenUrl(req.getUrl());
+
+        java.net.URI location;
+        if(resp.getShortUrl() != null && resp.getShortUrl().isBlank()){
+            location = java.net.URI.create(resp.getShortUrl());
+        }else{
+            location = org.springframework.web.servlet.support.ServletUriComponentsBuilder
+                       .fromCurrentContextPath().path("/{key")
+                       .buildAndExpand(resp.getShortKey()).toUri();
+        }
         // 201 Created with Location header is nice, but 200 OK is fine too.
-        return ResponseEntity.ok(resp);
+        return ResponseEntity.created(location).body(resp);
     }
 }
