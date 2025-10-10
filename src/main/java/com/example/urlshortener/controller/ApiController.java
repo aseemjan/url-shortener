@@ -26,8 +26,8 @@ public class ApiController {
             location = java.net.URI.create(resp.getShortUrl());
         }else{
             location = org.springframework.web.servlet.support.ServletUriComponentsBuilder
-                       .fromCurrentContextPath().path("/{key")
-                       .buildAndExpand(resp.getShortKey()).toUri();
+                    .fromCurrentContextPath().pathSegment(resp.getShortKey())
+                   .buildAndExpand(resp.getShortKey()).toUri();
         }
         // 201 Created with Location header is nice, but 200 OK is fine too.
         return ResponseEntity.created(location).body(resp);
