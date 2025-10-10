@@ -9,7 +9,6 @@ public class ShortenResponse {
 
     public ShortenResponse(String shortKey, String shortUrl) {
         this.shortKey = shortKey;
-        this.longUrl = longUrl;
         this.shortUrl = shortUrl;
     }
 
