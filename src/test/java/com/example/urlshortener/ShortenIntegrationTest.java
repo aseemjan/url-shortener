@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class ShortenIntegrationTest {
 
     @Container
-    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0.34")
+    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0.33")
             .withDatabaseName("testdb")
             .withUsername("test")
             .withPassword("test");
