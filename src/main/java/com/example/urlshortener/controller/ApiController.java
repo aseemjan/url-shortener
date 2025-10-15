@@ -22,14 +22,14 @@ public class ApiController {
         ShortenResponse resp = service.shortenUrl(req.getUrl());
 
         java.net.URI location;
-        if(resp.getShortUrl() != null && resp.getShortUrl().isBlank()){
+        if (resp.getShortUrl() != null && !resp.getShortUrl().isBlank()) {
             location = java.net.URI.create(resp.getShortUrl());
         }else{
             location = org.springframework.web.servlet.support.ServletUriComponentsBuilder
                     .fromCurrentContextPath().pathSegment(resp.getShortKey())
                    .buildAndExpand(resp.getShortKey()).toUri();
         }
-        // 201 Created with Location header is nice, but 200 OK is fine too.
+        // 201 Created with Location header.
         return ResponseEntity.created(location).body(resp);
     }
 }
