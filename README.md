@@ -6,17 +6,24 @@
 
 ---
 
-![Banner](https://raw.githubusercontent.com/<aseemjan>/<url-shortener>/main/src/main/assets/banner.png)
+![Banner](https://raw.githubusercontent.com/aseemjan/url-shortener/main/src/main/assets/banner.png)
 
 
 
 *A simple URL Shortener service built with Spring Boot.*
 
-## Features (to be added later)
+This project implements a clean backend architecture for shortening URLs.  
+It follows REST best practices (`201 Created`, `Location` header),  
+handles collision-free short-code generation,  
+and uses JPA with Flyway for database migrations.
 
-* Convert long URLs into short codes
-* Store and retrieve mappings from database
-* Redirect short links to original URLs
+## Key Features
+* Generate unique short codes for long URLs with retry-based collision handling
+* Redirect short links using 302 responses with `Location` header
+* REST API with 201 Created responses and consistent JSON DTOs
+* Flyway-managed MySQL schema for persistence
+* Centralized exception handling for validation and not-found errors
+* Comprehensive unit and integration tests (JUnit + MockMvc)
 
 ## Tech Stack
 
@@ -24,7 +31,9 @@
 * Spring Boot 3
 * Spring Web
 * Spring Data JPA
-* H2 Database (for development, later Postgres/MySQL)
+* MySQL (production), H2 (for local/testing)
+* Flyway for schema versioning
+* JUnit 5 + Mockito for testing
 
 ## How to Run
 
@@ -51,7 +60,7 @@ Content-Type: application/json
 }
 ```
 
-**Successful response (200 OK)**
+**Successful response (201 CREATED)**
 
 ```json
 {
@@ -79,6 +88,13 @@ curl -s -X POST http://localhost:8080/api/v1/shorten \
 
 ### Redirect (follow short link)
 
+## Design Highlights
+* **Idempotent shortening** — same long URL always returns the same short key.
+* **Collision resolution** — automatic retries with salted codes and DB uniqueness checks.
+* **Resilience** — DataIntegrityViolation handling for concurrent requests.
+* **Extensible** — future-ready for Redis caching and analytics.
+
+
 **Endpoint**
 
 ```
@@ -97,6 +113,13 @@ curl -i http://localhost:8080/a1b2C3
 ---
 
 ## Config
+
+## Future Improvements
+* Redis caching for faster redirects
+* Docker Compose for local setup (app + MySQL)
+* Click analytics and metrics with Micrometer
+* Horizontal sharding for scalability
+
 
 In `src/main/resources/application.properties` set the base host for generated short URLs:
 
