@@ -7,11 +7,6 @@ public class ShortenResponse {
 
     public ShortenResponse() {}
 
-    public ShortenResponse(String shortKey, String shortUrl) {
-        this.shortKey = shortKey;
-        this.shortUrl = shortUrl;
-    }
-
     public String getShortKey() {
         return shortKey;
     }

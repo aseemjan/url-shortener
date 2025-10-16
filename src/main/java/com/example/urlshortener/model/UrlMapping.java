@@ -8,7 +8,7 @@ public class UrlMapping {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    public Long id;
 
     // Use a non-reserved, descriptive column name (shortKey)
     @Column(name = "short_key", nullable = false, unique = true)
@@ -19,13 +19,9 @@ public class UrlMapping {
 
     // store epoch millis for simplicity
     @Column(name = "created_at", nullable = false)
-    private Long createdAt;
+    public Long createdAt;
 
     // --- getters & setters ---
-    public Long getId() {
-        return id;
-    }
-
     public void setId(Long id) {
         this.id = id;
     }
@@ -44,10 +40,6 @@ public class UrlMapping {
 
     public void setLongUrl(String longUrl) {
         this.longUrl = longUrl;
-    }
-
-    public Long getCreatedAt() {
-        return createdAt;
     }
 
     public void setCreatedAt(Long createdAt) {
