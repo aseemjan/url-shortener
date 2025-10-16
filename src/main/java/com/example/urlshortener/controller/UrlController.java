@@ -23,7 +23,13 @@ public class UrlController {
     @PostMapping("/shorten")
     public ResponseEntity<ShortenResponse> shortenUrl(@Valid @RequestBody ShortenRequest req) {
         ShortenResponse resp = service.shortenUrl(req.getUrl());
-        return ResponseEntity.status(HttpStatus.CREATED).body(resp);
+
+        //URI for the new resource
+        String location = "/api/" + resp.getShortKey();
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .header(HttpHeaders.LOCATION, location)
+                .body(resp);
     }
 
     @GetMapping("/{shortKey}")

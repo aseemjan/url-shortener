@@ -1,7 +1,7 @@
 package com.example.urlshortener;
 
-import com.example.urlshortener.controller.RedirectController;
 import com.example.urlshortener.dto.ShortenRequest;
+import com.example.urlshortener.controller.RedirectController;
 import com.example.urlshortener.model.UrlMapping;
 import com.example.urlshortener.repository.UrlMappingRepository;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -47,7 +47,6 @@ public class ShortenRedirectIntegrationTest {
         registry.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
 
         registry.add("spring.flyway.enabled", () -> "true");
-        registry.add("spring.flyway.locations", () -> "classpath:db/migration");
 
         registry.add("spring.jpa.database-platform", () -> "org.hibernate.dialect.MySQL8Dialect");
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "none");
@@ -57,8 +56,8 @@ public class ShortenRedirectIntegrationTest {
         registry.add("spring.flyway.url", mysql::getJdbcUrl);
         registry.add("spring.flyway.user", mysql::getUsername);
         registry.add("spring.flyway.password", mysql::getPassword);
-
          */
+
 
     }
 
