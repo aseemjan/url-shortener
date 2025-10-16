@@ -56,7 +56,7 @@ public class UrlShorteningService {
             return dto;
         }
 
-        // 2) Try generate + save with collision handling and retries
+        // 2) Try to generate + save with collision handling and retries
         for (int attempt = 1; attempt <= Math.max(1, maxRetries); attempt++) {
             String key = generator.generate(longUrl);
 
